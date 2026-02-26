@@ -1,49 +1,87 @@
-﻿# PHP Dependency Extractor
+﻿<h1 align="center">PHP Dependency Extractor</h1>
 
-PHP Dependency Extractor is a local desktop tool (Go + Web UI) for extracting selected PHP files and their dependencies from large projects, then exporting them into an isolated folder for review, debugging, or AI-assisted analysis.
+<p align="center">
+  Extract selected PHP files and their dependencies from large projects in minutes.
+</p>
 
-## Use Cases
+<p align="center">
+  <img src="https://img.shields.io/badge/Platform-Windows-0078D6?style=flat-square" alt="Windows">
+  <img src="https://img.shields.io/badge/Go-1.25+-00ADD8?style=flat-square&logo=go" alt="Go">
+  <img src="https://img.shields.io/badge/Frameworks-ZF1%20%7C%20CakePHP%20%7C%20Laravel-6f42c1?style=flat-square" alt="Frameworks">
+  <img src="https://img.shields.io/badge/License-See%20LICENSE.txt-brightgreen?style=flat-square" alt="License">
+</p>
 
-- Extract a minimal set of related files from a legacy PHP codebase
-- Prepare a reproducible package for teammate/vendor code review
-- Build a focused context bundle for AI tools
+<p align="center">
+  <a href="./manual.html"><b>English Manual</b></a> •
+  <a href="./manual-cn.html"><b>中文手册</b></a>
+</p>
 
-## Key Features
+<p align="center">
+  <a href="#quick-start">Quick Start</a> |
+  <a href="#user-documentation">Docs</a> |
+  <a href="#install-and-build">Build</a> |
+  <a href="#project-structure">Structure</a> |
+  <a href="#release-for-end-users">Release</a> |
+  <a href="#notes">Notes</a> |
+  <a href="#license">License</a>
+</p>
 
-- Scans `.php` files and builds a selectable file tree
-- Resolves dependencies from selected files
-- Framework support: `ZF1`, `CakePHP`, `Laravel`
+---
+
+## Why This Tool
+
+`PHP Dependency Extractor` helps you isolate a minimal and relevant code bundle from legacy or large PHP codebases.
+
+Typical use cases:
+- Share only related files with teammates for code review
+- Prepare a focused code package for AI-assisted analysis
+- Extract one controller/service and its dependencies for debugging
+
+## Features
+
+- Scan all `.php` files and build a searchable file tree
+- Resolve class dependencies from selected files
+- Framework-aware indexing and resolution:
+  - ZF1
+  - CakePHP
+  - Laravel
 - Optional `require/include` parsing with manual selection
-- Preserves original relative folder structure on export
-- Local server binds to `127.0.0.1` only
+- Preserve original relative folder structure on export
+- Local-only server binding (`127.0.0.1`)
+- Single executable runtime experience (Windows)
 
 ## Quick Start
 
 1. Run `php-dep-extractor.exe`
-2. The browser opens automatically at `http://127.0.0.1:<port>`
-3. Choose a project directory and framework, then click `Scan`
-4. Select files in the left tree, then click `Analyze`
-5. Click `Copy Files` to export
+2. Browser opens automatically at `http://127.0.0.1:<port>`
+3. Choose project folder and framework (`ZF1` / `CakePHP` / `Laravel`)
+4. Click `Scan`
+5. Select files in the tree
+6. Click `Analyze`
+7. Click `Copy Files`
 
-## Detailed User Guide
+## User Documentation
 
-For full operation details, see:
-
+English:
 - [manual.html](./manual.html)
-
-If you are viewing on GitHub and prefer Markdown:
-
 - [manual.md](./manual.md)
 
-Chinese documentation:
-
+Chinese:
 - [manual-cn.html](./manual-cn.html)
 - [manual-cn.md](./manual-cn.md)
 
-## Build From Source
+## Install and Build
+
+Build from source:
 
 ```bash
 go build -o php-dep-extractor.exe .
+```
+
+Run:
+
+```bash
+./php-dep-extractor.exe
 ```
 
 ## Project Structure
@@ -52,23 +90,33 @@ go build -o php-dep-extractor.exe .
 .
 ├─ main.go
 ├─ internal/
-│  ├─ server/
-│  ├─ scanner/
-│  ├─ parser/
-│  ├─ filetree/
-│  └─ copier/
+│  ├─ server/     # HTTP handlers and app state
+│  ├─ scanner/    # Project scan and class index
+│  ├─ parser/     # Dependency/include parsing
+│  ├─ filetree/   # Tree builder
+│  └─ copier/     # File export logic
 ├─ web/
 │  ├─ index.html
 │  ├─ app.js
 │  └─ style.css
 ├─ manual.html
-└─ manual.md
+├─ manual-cn.html
+├─ manual.md
+└─ manual-cn.md
 ```
+
+## Release for End Users
+
+If your users should "download and run directly", publish binaries in **GitHub Releases**:
+
+- Upload `php-dep-extractor.exe` (or a zip package)
+- Add links to `manual.html` / `manual-cn.html` in release notes
+- Keep source repository clean (do not commit `.exe` into source tree)
 
 ## Notes
 
-- Current UX is primarily targeted for Windows (folder picker uses PowerShell)
-- Dependency parsing is rule/regex-based, not full AST semantic analysis
+- Current UX is primarily designed for Windows (folder picker uses PowerShell)
+- Dependency detection is regex/rule-based, not full AST semantic parsing
 
 ## License
 
