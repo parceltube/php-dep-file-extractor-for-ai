@@ -1,0 +1,568 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PHP Dependency Extractor - 中文用户手册</title>
+<style>
+:root {
+    --bg: #1a1a2e;
+    --surface: #222240;
+    --surface2: #2a2a48;
+    --border: #3a3a5c;
+    --text: #e0e0f0;
+    --text-dim: #8888aa;
+    --blue: #5b9bf5;
+    --orange: #e8a040;
+    --green: #50c878;
+    --code-bg: #16162a;
+    --link: #6db3f8;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 15px;
+}
+
+.wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 260px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 24px 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    overflow-y: auto;
+}
+
+.sidebar-title {
+    padding: 0 20px 16px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--blue);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sidebar a {
+    display: block;
+    padding: 5px 20px;
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 13px;
+    border-left: 3px solid transparent;
+    transition: all 0.15s;
+}
+
+.sidebar a:hover {
+    color: var(--text);
+    background: var(--surface2);
+}
+
+.sidebar a.active {
+    color: var(--blue);
+    border-left-color: var(--blue);
+    background: var(--surface2);
+}
+
+.sidebar a.sub {
+    padding-left: 36px;
+    font-size: 12px;
+}
+
+.content {
+    margin-left: 260px;
+    padding: 40px 60px 80px;
+    max-width: 900px;
+}
+
+h1 {
+    font-size: 2em;
+    margin-bottom: 8px;
+    color: var(--text);
+}
+
+h1 small {
+    display: block;
+    font-size: 0.45em;
+    font-weight: 400;
+    color: var(--text-dim);
+    margin-top: 4px;
+}
+
+h2 {
+    font-size: 1.5em;
+    margin-top: 48px;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+}
+
+h3 {
+    font-size: 1.15em;
+    margin-top: 32px;
+    margin-bottom: 12px;
+    color: var(--blue);
+}
+
+p { margin-bottom: 12px; }
+a { color: var(--link); }
+strong { color: var(--text); }
+
+hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 32px 0;
+}
+
+ul, ol {
+    margin-bottom: 12px;
+    padding-left: 24px;
+}
+
+li { margin-bottom: 4px; }
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 16px;
+    font-size: 14px;
+}
+
+th, td {
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+
+th {
+    background: var(--surface);
+    color: var(--text-dim);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+td { background: var(--surface2); }
+tr:hover td { background: var(--surface); }
+
+code {
+    background: var(--code-bg);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: 'Cascadia Code', 'Consolas', monospace;
+    font-size: 0.9em;
+    color: var(--orange);
+}
+
+pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px 20px;
+    overflow-x: auto;
+    margin-bottom: 16px;
+    font-family: 'Cascadia Code', 'Consolas', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+pre code {
+    background: none;
+    padding: 0;
+    color: var(--text);
+}
+
+.badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+}
+.badge-blue { background: var(--blue); color: #fff; }
+.badge-orange { background: var(--orange); color: #1a1a2e; }
+.badge-gray { background: #666688; color: #fff; }
+
+.steps {
+    counter-reset: step;
+    list-style: none;
+    padding-left: 0;
+}
+
+.steps li {
+    counter-increment: step;
+    padding: 8px 0 8px 40px;
+    position: relative;
+    margin-bottom: 4px;
+}
+
+.steps li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0;
+    top: 8px;
+    width: 26px;
+    height: 26px;
+    background: var(--blue);
+    color: #fff;
+    border-radius: 50%;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: center;
+    line-height: 26px;
+}
+
+.callout {
+    padding: 14px 18px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    border-left: 4px solid;
+    font-size: 14px;
+}
+
+.callout-info {
+    background: rgba(91,155,245,0.1);
+    border-left-color: var(--blue);
+}
+
+.callout-tip {
+    background: rgba(80,200,120,0.1);
+    border-left-color: var(--green);
+}
+
+.callout-title {
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.file-tree {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px 20px;
+    font-family: 'Cascadia Code', 'Consolas', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    margin-bottom: 16px;
+    color: var(--text-dim);
+}
+
+.file-tree .dir { color: var(--blue); }
+.file-tree .file { color: var(--text); }
+.file-tree .highlight { color: var(--orange); }
+
+@media (max-width: 800px) {
+    .sidebar { display: none; }
+    .content { margin-left: 0; padding: 24px 20px 60px; }
+}
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+<nav class="sidebar">
+    <div class="sidebar-title">PDE 手册</div>
+    <a href="#overview">概述</a>
+    <a href="#quick-start">快速开始</a>
+    <a href="#interface">界面说明</a>
+    <a href="#toolbar" class="sub">工具栏</a>
+    <a href="#file-tree" class="sub">文件树</a>
+    <a href="#dependencies" class="sub">依赖面板</a>
+    <a href="#status-bar" class="sub">状态栏</a>
+    <a href="#settings">设置</a>
+    <a href="#settings-general" class="sub">General</a>
+    <a href="#settings-framework" class="sub">Framework</a>
+    <a href="#settings-about" class="sub">About</a>
+    <a href="#framework-support">框架支持</a>
+    <a href="#fw-zf1" class="sub">ZF1</a>
+    <a href="#fw-cakephp" class="sub">CakePHP</a>
+    <a href="#fw-laravel" class="sub">Laravel</a>
+    <a href="#require-include">Require/Include 解析</a>
+    <a href="#output-structure">输出结构</a>
+    <a href="#fallback">回退检测</a>
+    <a href="#excluded-dirs">排除目录</a>
+    <a href="#technical">技术说明</a>
+    <a href="#troubleshooting">故障排查</a>
+</nav>
+
+<main class="content">
+
+<h1>PHP Dependency Extractor <small>中文用户手册 — v0.1.0</small></h1>
+
+<h2 id="overview">概述</h2>
+<p>PHP Dependency Extractor（PDE）是一个独立的 Windows 工具，用于从大型项目中提取 PHP 源文件及其依赖。它会基于框架命名约定和正则解析自动发现类依赖，然后将相关文件复制到独立目录，便于分析。</p>
+
+<div class="callout callout-info">
+    <div class="callout-title">使用场景</div>
+    你有一个包含 5000+ 文件的 PHP 项目，希望只提取一小部分相关文件（例如某个 Controller 及其全部依赖），用于分享给 AI 助手或进行代码评审。
+</div>
+
+<p><strong>核心能力：</strong></p>
+<ul>
+    <li>零依赖：单个 <code>.exe</code> 可执行文件，无需额外运行时</li>
+    <li>浏览器自动打开本地 Web UI</li>
+    <li>支持 ZF1、CakePHP、Laravel 命名约定</li>
+    <li>基于正则自动发现类依赖</li>
+    <li>支持可选的 <code>require</code>/<code>include</code> 解析</li>
+    <li>导出时保留目录结构</li>
+</ul>
+
+<hr>
+
+<h2 id="quick-start">快速开始</h2>
+<ol class="steps">
+    <li>双击 <code>php-dep-extractor.exe</code></li>
+    <li>浏览器自动打开 <code>http://127.0.0.1:&lt;port&gt;</code></li>
+    <li>点击 Project 旁边的 <strong>Browse</strong> 选择项目目录</li>
+    <li>选择 <strong>Framework</strong>（ZF1 / CakePHP / Laravel）</li>
+    <li>点击 <strong>Scan</strong> 建立项目索引</li>
+    <li>在文件树中勾选需要提取的文件</li>
+    <li>点击 <strong>Analyze</strong> 分析依赖</li>
+    <li>点击 <strong>Copy Files</strong> 导出</li>
+</ol>
+
+<hr>
+
+<h2 id="interface">界面说明</h2>
+
+<h3 id="toolbar">工具栏（Toolbar）</h3>
+<table>
+    <tr><th>控件</th><th>说明</th></tr>
+    <tr><td><strong>Project</strong></td><td>PHP 项目根目录路径。点击 Browse 通过 Windows 目录选择器选择。</td></tr>
+    <tr><td><strong>Output</strong></td><td>提取文件导出目录。留空时会自动生成同级目录：<code>{project}_output_{timestamp}</code>。双击输入框可恢复自动模式。</td></tr>
+    <tr><td><strong>Framework</strong></td><td>选择框架用于正确解析类名：ZF1、CakePHP 或 Laravel。</td></tr>
+    <tr><td><strong>Parse require/include</strong></td><td>可选开启 <code>require</code>/<code>include</code> 解析，结果在独立区域中手动勾选。</td></tr>
+    <tr><td><strong>Scan</strong></td><td>遍历项目目录，构建文件树和类名索引。</td></tr>
+    <tr><td><strong>Analyze</strong></td><td>解析已选文件中的类引用并计算依赖。</td></tr>
+    <tr><td><strong>Copy Files</strong></td><td>将已选文件 + 依赖文件复制到输出目录。</td></tr>
+    <tr><td><strong>Settings</strong></td><td>打开设置面板（主题、字体、前缀映射）。</td></tr>
+</table>
+
+<h3 id="file-tree">左侧面板 — 文件树</h3>
+<ul>
+    <li>展示项目中所有 <code>.php</code> 文件</li>
+    <li><strong>默认折叠</strong>，点击目录逐级展开</li>
+    <li>点击复选框（或点击文件行）可选择/取消</li>
+    <li>使用搜索框按路径过滤，命中目录会自动展开</li>
+</ul>
+
+<h3 id="dependencies">右侧面板 — 依赖</h3>
+<p>点击 Analyze 后会显示三个区域：</p>
+<table>
+    <tr><th>区域</th><th>颜色</th><th>说明</th></tr>
+    <tr><td><span class="badge badge-blue">Selected</span></td><td>蓝色</td><td>你在文件树中手动勾选的文件</td></tr>
+    <tr><td><span class="badge badge-orange">Dependencies</span></td><td>橙色</td><td>自动发现的类依赖，显示类名、引用类型（<code>new</code>、<code>extends</code>、<code>static</code> 等）以及来源文件</td></tr>
+    <tr><td><span class="badge badge-gray">Include/Require</span></td><td>灰色</td><td>仅在启用 Parse require/include 时出现；每一项都需勾选后才会纳入复制</td></tr>
+</table>
+
+<h3 id="status-bar">状态栏</h3>
+<ul>
+    <li><strong>左侧</strong>：当前操作状态信息</li>
+    <li><strong>右侧</strong>：文件计数（Selected / Dependencies / Total）和版本号</li>
+</ul>
+
+<hr>
+
+<h2 id="settings">设置</h2>
+<p>点击 <strong>Settings</strong> 打开设置面板，共三个标签页：</p>
+
+<h3 id="settings-general">General</h3>
+<ul>
+    <li><strong>Theme</strong>：Dark、Light、System（跟随系统）。设置会跨会话保留。</li>
+    <li><strong>Font Size</strong>：11px 到 18px，可用滑块或 +/- 按钮调整，默认 13px。</li>
+</ul>
+
+<h3 id="settings-framework">Framework</h3>
+<p>可配置 <strong>ZF1 前缀映射</strong>，用于把类名前缀映射到 <code>application/</code> 下目录：</p>
+<table>
+    <tr><th>前缀</th><th>目录</th><th>示例</th></tr>
+    <tr><td><code>Parent_</code></td><td><code>parents/</code></td><td><code>Parent_DbTable_Car_X</code> &rarr; <code>parents/DbTable/Car/X.php</code></td></tr>
+    <tr><td><code>DbTable_</code></td><td><code>dbs/</code></td><td><code>DbTable_Car_CarrierCust</code> &rarr; <code>dbs/Car/CarrierCust.php</code></td></tr>
+    <tr><td><code>Service_</code></td><td><code>services/</code></td><td><code>Service_Sys_Breadcrumbs</code> &rarr; <code>services/Sys/Breadcrumbs.php</code></td></tr>
+    <tr><td><code>Model_</code></td><td><code>models/</code></td><td><code>Model_Car_CarrierCust</code> &rarr; <code>models/Car/CarrierCust.php</code></td></tr>
+    <tr><td><code>Form_</code></td><td><code>forms/</code></td><td><code>Form_Login</code> &rarr; <code>forms/Login.php</code></td></tr>
+</table>
+<p>可增删改行，点击 <strong>Save Mappings</strong> 应用。</p>
+
+<h3 id="settings-about">About</h3>
+<p>显示版本信息、支持框架和工具说明。</p>
+
+<hr>
+
+<h2 id="framework-support">框架支持</h2>
+
+<h3 id="fw-zf1">ZF1（Zend Framework 1）</h3>
+<p><strong>类名解析</strong>：下划线分隔类名映射到目录路径。</p>
+<pre><code>Model_Car_CarrierCust  &rarr;  application/models/Car/CarrierCust.php
+DbTable_Ord_Order      &rarr;  application/dbs/Ord/Order.php
+Service_Api_StarTrack  &rarr;  application/services/Api/StarTrack.php</code></pre>
+
+<p><strong>检测模式</strong>：</p>
+<ul>
+    <li><code>new ClassName()</code> — 实例化</li>
+    <li><code>extends ClassName</code> — 继承</li>
+    <li><code>implements InterfaceName</code> — 接口实现</li>
+    <li><code>ClassName::method()</code> — 静态调用</li>
+    <li><code>function foo(ClassName $bar)</code> — 参数类型提示</li>
+</ul>
+
+<div class="callout callout-tip">
+    <div class="callout-title">自动过滤</div>
+    以 <code>Zend_</code>、<code>ZendX_</code> 开头的类，以及 PHP 内置类型（<code>stdClass</code>、<code>Exception</code>、<code>DateTime</code> 等）会自动从依赖结果中排除。
+</div>
+
+<h3 id="fw-cakephp">CakePHP</h3>
+<p><strong>类名解析</strong>：基于 CakePHP 2.x 目录约定。</p>
+<table>
+    <tr><th>类型</th><th>目录</th></tr>
+    <tr><td>Model</td><td><code>Model/</code></td></tr>
+    <tr><td>Controller</td><td><code>Controller/</code></td></tr>
+    <tr><td>Component</td><td><code>Controller/Component/</code></td></tr>
+    <tr><td>Behavior</td><td><code>Model/Behavior/</code></td></tr>
+    <tr><td>Helper</td><td><code>View/Helper/</code></td></tr>
+</table>
+<p><strong>检测</strong>：<code>App::uses('ClassName', 'Type')</code> 和 <code>App::import('Type', 'ClassName')</code></p>
+
+<h3 id="fw-laravel">Laravel</h3>
+<p><strong>类名解析</strong>：PSR-4 命名空间到路径映射。</p>
+<pre><code>App\Models\User                          &rarr;  app/Models/User.php
+App\Http\Controllers\OrderController     &rarr;  app/Http/Controllers/OrderController.php
+App\Services\ShippingService             &rarr;  app/Services/ShippingService.php</code></pre>
+<p><strong>检测</strong>：<code>use App\Models\User</code> 语句与带命名空间类引用。</p>
+
+<hr>
+
+<h2 id="require-include">Require/Include 解析</h2>
+<p>启用后，PDE 会在已选文件中扫描：</p>
+<ul>
+    <li><code>require 'path'</code></li>
+    <li><code>require_once 'path'</code></li>
+    <li><code>include 'path'</code></li>
+    <li><code>include_once 'path'</code></li>
+</ul>
+
+<p><strong>支持路径模式：</strong></p>
+<table>
+    <tr><th>模式</th><th>示例</th></tr>
+    <tr><td>直接字符串</td><td><code>require_once 'lib/helper.php'</code></td></tr>
+    <tr><td>APPLICATION_PATH</td><td><code>require_once APPLICATION_PATH . '/configs/constants.php'</code></td></tr>
+    <tr><td>dirname(__FILE__)</td><td><code>include dirname(__FILE__) . '/../bootstrap.php'</code></td></tr>
+    <tr><td>__DIR__</td><td><code>require __DIR__ . '/functions.php'</code></td></tr>
+</table>
+
+<div class="callout callout-info">
+    <div class="callout-title">手动勾选</div>
+    Include/Require 结果不会自动加入复制列表，会显示在灰色区域中，需手动勾选后再点击 Copy Files。
+</div>
+
+<hr>
+
+<h2 id="output-structure">输出结构</h2>
+<p>导出时会保留相对于项目根目录的原始结构：</p>
+
+<div class="file-tree">
+<span class="dir">输入项目：</span> C:\projects\myapp\<br>
+<span class="dir">已选文件：</span>      <span class="highlight">application/controllers/V3/CustomersController.php</span><br>
+<span class="dir">依赖文件：</span>  <span class="file">application/services/Sys/Breadcrumbs.php</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">application/dbs/Car/CarrierCust.php</span><br>
+<br>
+<span class="dir">输出目录：</span> C:\projects\myapp_output_20260223_153045\<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9492;&#9472;&#9472; <span class="dir">application/</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9500;&#9472;&#9472; <span class="dir">controllers/V3/</span><span class="highlight">CustomersController.php</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9500;&#9472;&#9472; <span class="dir">services/Sys/</span><span class="file">Breadcrumbs.php</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9492;&#9472;&#9472; <span class="dir">dbs/Car/</span><span class="file">CarrierCust.php</span>
+</div>
+
+<hr>
+
+<h2 id="fallback">回退类检测</h2>
+<p>对于不符合框架命名约定的文件（例如独立工具类、特殊 Controller），PDE 会读取文件前 100 行，查找：</p>
+<pre><code>class ClassName
+abstract class ClassName
+final class ClassName
+interface InterfaceName
+trait TraitName</code></pre>
+<p>这样可保证非标准文件也能被索引并被发现为依赖。</p>
+
+<hr>
+
+<h2 id="excluded-dirs">排除目录</h2>
+<table>
+    <tr><th>目录</th><th>原因</th></tr>
+    <tr><td><code>vendor/</code></td><td>Composer 依赖</td></tr>
+    <tr><td><code>node_modules/</code></td><td>npm 包</td></tr>
+    <tr><td><code>.git/</code>, <code>.svn/</code></td><td>版本控制目录</td></tr>
+    <tr><td><code>.idea/</code></td><td>IDE 配置目录</td></tr>
+</table>
+
+<hr>
+
+<h2 id="technical">技术说明</h2>
+<table>
+    <tr><th>项目</th><th>说明</th></tr>
+    <tr><td>绑定地址</td><td>服务仅监听 <code>127.0.0.1</code>（不对外网开放）</td></tr>
+    <tr><td>端口</td><td>自动选择空闲端口（控制台可见）</td></tr>
+    <tr><td>内存</td><td>文件路径与类索引驻留内存，约 6000 文件压力很小</td></tr>
+    <tr><td>安装</td><td>无需安装，单个 <code>.exe</code> 即可运行</td></tr>
+    <tr><td>设置持久化</td><td>主题和字体保存至浏览器 <code>localStorage</code></td></tr>
+    <tr><td>技术栈</td><td>后端 Go + 前端原生 HTML/CSS/JS，通过 <code>go:embed</code> 内嵌资源</td></tr>
+</table>
+
+<hr>
+
+<h2 id="troubleshooting">故障排查</h2>
+<table>
+    <tr><th>问题</th><th>解决方案</th></tr>
+    <tr><td>浏览器未自动打开</td><td>查看控制台 URL（例如 <code>http://127.0.0.1:54321</code>），手动打开</td></tr>
+    <tr><td>目录选择器没有弹出</td><td>确认系统可用 PowerShell</td></tr>
+    <tr><td>依赖识别不完整</td><td>尝试启用 Parse require/include 以处理未自动加载文件</td></tr>
+    <tr><td>类映射不正确</td><td>进入 Settings → Framework，按项目实际规则调整前缀映射</td></tr>
+    <tr><td>扫描后找不到文件</td><td>确认项目路径正确，且存在未被排除的 <code>.php</code> 文件</td></tr>
+    <tr><td>端口冲突报错</td><td>关闭其他 PDE 实例，或让系统自动分配其他端口</td></tr>
+</table>
+
+</main>
+</div>
+
+<script>
+(function() {
+    const links = document.querySelectorAll('.sidebar a');
+    const sections = [];
+    links.forEach(a => {
+        const id = a.getAttribute('href')?.replace('#','');
+        if (id) {
+            const el = document.getElementById(id);
+            if (el) sections.push({ el, a });
+        }
+    });
+
+    function onScroll() {
+        const scrollY = window.scrollY + 80;
+        let current = sections[0];
+        for (const s of sections) {
+            if (s.el.offsetTop <= scrollY) current = s;
+        }
+        links.forEach(a => a.classList.remove('active'));
+        if (current) current.a.classList.add('active');
+    }
+
+    window.addEventListener('scroll', onScroll);
+    onScroll();
+})();
+</script>
+</body>
+</html>

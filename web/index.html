@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PHP Dependency Extractor</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body data-theme="dark">
+
+<!-- Toolbar (simplified) -->
+<div class="toolbar">
+    <div class="toolbar-group">
+        <label>Project:</label>
+        <input type="text" id="projectPath" class="path-input" placeholder="Select project directory..." readonly>
+        <button class="btn btn-secondary" id="btnBrowseProject">Browse</button>
+    </div>
+
+    <div class="toolbar-sep"></div>
+
+    <div class="toolbar-group">
+        <label>Output:</label>
+        <input type="text" id="outputPath" class="path-input" placeholder="Auto: {project}_output_{ts}" readonly>
+        <button class="btn btn-secondary" id="btnBrowseOutput">Browse</button>
+    </div>
+
+    <div class="toolbar-sep"></div>
+
+    <div class="toolbar-group">
+        <label>Framework:</label>
+        <select id="framework">
+            <option value="zf1">ZF1</option>
+            <option value="cakephp">CakePHP</option>
+            <option value="laravel">Laravel</option>
+        </select>
+    </div>
+
+    <label class="checkbox-label">
+        <input type="checkbox" id="parseIncludes">
+        Parse require/include
+    </label>
+
+    <div class="toolbar-sep"></div>
+
+    <button class="btn btn-primary" id="btnScan" disabled>Scan</button>
+    <button class="btn btn-primary" id="btnAnalyze" disabled>Analyze</button>
+    <button class="btn btn-success" id="btnCopy" disabled>Copy Files</button>
+
+    <div style="margin-left:auto">
+        <button class="btn btn-secondary" id="btnSettings">Settings</button>
+    </div>
+</div>
+
+<!-- Main content -->
+<div class="main">
+    <!-- Left panel: file tree -->
+    <div class="panel-left" id="panelLeft">
+        <div class="panel-header">
+            <span>File Tree</span>
+            <span id="fileCount"></span>
+        </div>
+        <div class="search-box">
+            <input type="text" id="searchFilter" placeholder="Filter files...">
+        </div>
+        <div class="tree-container" id="treeContainer">
+            <div class="empty-state">
+                <div class="icon">&#128193;</div>
+                <p>Select a project directory and click Scan</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resize handle -->
+    <div class="resize-handle" id="resizeHandle"></div>
+
+    <!-- Right panel: results -->
+    <div class="panel-right">
+        <div class="panel-header">
+            <span>Dependencies</span>
+            <span id="depCount"></span>
+        </div>
+        <div class="results-container" id="resultsContainer">
+            <div class="empty-state">
+                <div class="icon">&#128270;</div>
+                <p>Select files from the tree and click Analyze</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Status bar -->
+<div class="statusbar">
+    <div class="statusbar-left">
+        <span id="statusText">Ready</span>
+    </div>
+    <div class="statusbar-right">
+        <span id="statusStats"></span>
+        <span class="version" id="versionLabel">v0.1.0</span>
+    </div>
+</div>
+
+<!-- Progress overlay -->
+<div class="progress-overlay" id="progressOverlay">
+    <div class="progress-card">
+        <div class="progress-spinner"></div>
+        <div class="progress-title" id="progressTitle">Working...</div>
+        <div class="progress-detail" id="progressDetail"></div>
+        <div class="progress-bar-container">
+            <div class="progress-bar indeterminate" id="progressBar"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Settings modal (tabbed) -->
+<div class="modal-overlay" id="settingsModal">
+    <div class="modal modal-lg">
+        <div class="modal-header">
+            <h2>Settings</h2>
+            <button class="btn-icon modal-close" id="btnSettingsClose">&#10005;</button>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" data-tab="tab-general">General</button>
+            <button class="tab" data-tab="tab-framework">Framework</button>
+            <button class="tab" data-tab="tab-about">About</button>
+        </div>
+
+        <!-- Tab: General -->
+        <div class="tab-content active" id="tab-general">
+            <div class="setting-group">
+                <label class="setting-label">Theme</label>
+                <div class="setting-control">
+                    <div class="theme-options">
+                        <label class="radio-card">
+                            <input type="radio" name="theme" value="dark" id="themeDark">
+                            <span class="radio-card-body">
+                                <span class="radio-card-icon">&#127761;</span>
+                                <span>Dark</span>
+                            </span>
+                        </label>
+                        <label class="radio-card">
+                            <input type="radio" name="theme" value="light" id="themeLight">
+                            <span class="radio-card-body">
+                                <span class="radio-card-icon">&#9728;&#65039;</span>
+                                <span>Light</span>
+                            </span>
+                        </label>
+                        <label class="radio-card">
+                            <input type="radio" name="theme" value="system" id="themeSystem">
+                            <span class="radio-card-body">
+                                <span class="radio-card-icon">&#128187;</span>
+                                <span>System</span>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <label class="setting-label">Font Size</label>
+                <div class="setting-control font-size-row">
+                    <button class="btn btn-secondary btn-sm" id="fontDec">-</button>
+                    <input type="range" id="fontSizeRange" min="11" max="18" value="13" step="1">
+                    <button class="btn btn-secondary btn-sm" id="fontInc">+</button>
+                    <span class="font-size-value" id="fontSizeValue">13px</span>
+                </div>
+                <div class="setting-hint">Range: 11px - 18px. Default: 13px</div>
+            </div>
+        </div>
+
+        <!-- Tab: Framework -->
+        <div class="tab-content" id="tab-framework">
+            <div class="setting-group">
+                <label class="setting-label">Prefix Mappings (ZF1)</label>
+                <div class="setting-hint" style="margin-bottom:8px">Map class name prefixes to directories under <code>application/</code></div>
+                <div id="mappingsList"></div>
+                <button class="btn btn-secondary btn-sm" id="btnAddMapping" style="margin-top:8px">+ Add Mapping</button>
+            </div>
+
+            <div class="setting-group">
+                <label class="setting-label">CakePHP</label>
+                <div class="setting-hint">Detection via <code>App::uses('Class', 'Type')</code> and <code>App::import()</code>. Directory conventions: Model/, Controller/, View/Helper/, etc.</div>
+            </div>
+
+            <div class="setting-group">
+                <label class="setting-label">Laravel</label>
+                <div class="setting-hint">PSR-4 autoloading: <code>App\Models\User</code> &rarr; <code>app/Models/User.php</code>. Detection via <code>use</code> statements.</div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-primary" id="btnMappingsSave">Save Mappings</button>
+            </div>
+        </div>
+
+        <!-- Tab: About -->
+        <div class="tab-content" id="tab-about">
+            <div class="about-content">
+                <div class="about-logo">PDE</div>
+                <h3>PHP Dependency Extractor</h3>
+                <div class="about-version">v0.1.0</div>
+                <p class="about-desc">
+                    Select PHP files from a project, automatically discover class dependencies,
+                    and export them to a standalone folder for analysis.
+                </p>
+                <table class="about-table">
+                    <tr><td>Supported Frameworks</td><td>ZF1, CakePHP, Laravel</td></tr>
+                    <tr><td>Detection Methods</td><td>Path convention, regex parsing, fallback class scan</td></tr>
+                    <tr><td>Platform</td><td>Windows (standalone .exe)</td></tr>
+                    <tr><td>Runtime Dependencies</td><td>None</td></tr>
+                </table>
+                <div class="about-footer">
+                    <p>Built with Go + vanilla JS. Zero external dependencies.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

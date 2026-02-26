@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PHP Dependency Extractor - User Manual</title>
+<style>
+:root {
+    --bg: #1a1a2e;
+    --surface: #222240;
+    --surface2: #2a2a48;
+    --border: #3a3a5c;
+    --text: #e0e0f0;
+    --text-dim: #8888aa;
+    --blue: #5b9bf5;
+    --orange: #e8a040;
+    --green: #50c878;
+    --code-bg: #16162a;
+    --link: #6db3f8;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 15px;
+}
+
+/* Layout */
+.wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Sidebar TOC */
+.sidebar {
+    width: 260px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 24px 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    overflow-y: auto;
+}
+
+.sidebar-title {
+    padding: 0 20px 16px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--blue);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sidebar a {
+    display: block;
+    padding: 5px 20px;
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 13px;
+    border-left: 3px solid transparent;
+    transition: all 0.15s;
+}
+
+.sidebar a:hover {
+    color: var(--text);
+    background: var(--surface2);
+}
+
+.sidebar a.active {
+    color: var(--blue);
+    border-left-color: var(--blue);
+    background: var(--surface2);
+}
+
+.sidebar a.sub {
+    padding-left: 36px;
+    font-size: 12px;
+}
+
+/* Main content */
+.content {
+    margin-left: 260px;
+    padding: 40px 60px 80px;
+    max-width: 900px;
+}
+
+/* Typography */
+h1 {
+    font-size: 2em;
+    margin-bottom: 8px;
+    color: var(--text);
+}
+
+h1 small {
+    display: block;
+    font-size: 0.45em;
+    font-weight: 400;
+    color: var(--text-dim);
+    margin-top: 4px;
+}
+
+h2 {
+    font-size: 1.5em;
+    margin-top: 48px;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+}
+
+h3 {
+    font-size: 1.15em;
+    margin-top: 32px;
+    margin-bottom: 12px;
+    color: var(--blue);
+}
+
+p {
+    margin-bottom: 12px;
+}
+
+a { color: var(--link); }
+
+strong { color: var(--text); }
+
+hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 32px 0;
+}
+
+/* Lists */
+ul, ol {
+    margin-bottom: 12px;
+    padding-left: 24px;
+}
+
+li {
+    margin-bottom: 4px;
+}
+
+/* Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 16px;
+    font-size: 14px;
+}
+
+th, td {
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+
+th {
+    background: var(--surface);
+    color: var(--text-dim);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+td {
+    background: var(--surface2);
+}
+
+tr:hover td {
+    background: var(--surface);
+}
+
+/* Code */
+code {
+    background: var(--code-bg);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: 'Cascadia Code', 'Consolas', monospace;
+    font-size: 0.9em;
+    color: var(--orange);
+}
+
+pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px 20px;
+    overflow-x: auto;
+    margin-bottom: 16px;
+    font-family: 'Cascadia Code', 'Consolas', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+pre code {
+    background: none;
+    padding: 0;
+    color: var(--text);
+}
+
+/* Badges */
+.badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+}
+.badge-blue { background: var(--blue); color: #fff; }
+.badge-orange { background: var(--orange); color: #1a1a2e; }
+.badge-gray { background: #666688; color: #fff; }
+
+/* Numbered steps */
+.steps {
+    counter-reset: step;
+    list-style: none;
+    padding-left: 0;
+}
+
+.steps li {
+    counter-increment: step;
+    padding: 8px 0 8px 40px;
+    position: relative;
+    margin-bottom: 4px;
+}
+
+.steps li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0;
+    top: 8px;
+    width: 26px;
+    height: 26px;
+    background: var(--blue);
+    color: #fff;
+    border-radius: 50%;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: center;
+    line-height: 26px;
+}
+
+/* Callout boxes */
+.callout {
+    padding: 14px 18px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    border-left: 4px solid;
+    font-size: 14px;
+}
+
+.callout-info {
+    background: rgba(91,155,245,0.1);
+    border-left-color: var(--blue);
+}
+
+.callout-tip {
+    background: rgba(80,200,120,0.1);
+    border-left-color: var(--green);
+}
+
+.callout-title {
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+/* File tree diagram */
+.file-tree {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px 20px;
+    font-family: 'Cascadia Code', 'Consolas', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    margin-bottom: 16px;
+    color: var(--text-dim);
+}
+
+.file-tree .dir { color: var(--blue); }
+.file-tree .file { color: var(--text); }
+.file-tree .highlight { color: var(--orange); }
+
+/* Keyboard shortcut */
+kbd {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1px 6px;
+    font-family: 'Cascadia Code', 'Consolas', monospace;
+    font-size: 0.85em;
+}
+
+/* Responsive */
+@media (max-width: 800px) {
+    .sidebar { display: none; }
+    .content { margin-left: 0; padding: 24px 20px 60px; }
+}
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+<!-- Sidebar TOC -->
+<nav class="sidebar">
+    <div class="sidebar-title">PDE Manual</div>
+    <a href="#overview">Overview</a>
+    <a href="#quick-start">Quick Start</a>
+    <a href="#interface">Interface</a>
+    <a href="#toolbar" class="sub">Toolbar</a>
+    <a href="#file-tree" class="sub">File Tree</a>
+    <a href="#dependencies" class="sub">Dependencies Panel</a>
+    <a href="#status-bar" class="sub">Status Bar</a>
+    <a href="#settings">Settings</a>
+    <a href="#settings-general" class="sub">General</a>
+    <a href="#settings-framework" class="sub">Framework</a>
+    <a href="#settings-about" class="sub">About</a>
+    <a href="#framework-support">Framework Support</a>
+    <a href="#fw-zf1" class="sub">ZF1</a>
+    <a href="#fw-cakephp" class="sub">CakePHP</a>
+    <a href="#fw-laravel" class="sub">Laravel</a>
+    <a href="#require-include">Require/Include Parsing</a>
+    <a href="#output-structure">Output Structure</a>
+    <a href="#fallback">Fallback Detection</a>
+    <a href="#excluded-dirs">Excluded Directories</a>
+    <a href="#technical">Technical Notes</a>
+    <a href="#troubleshooting">Troubleshooting</a>
+</nav>
+
+<!-- Main content -->
+<main class="content">
+
+<h1>PHP Dependency Extractor <small>User Manual &mdash; v0.1.0</small></h1>
+
+<!-- Overview -->
+<h2 id="overview">Overview</h2>
+<p>PHP Dependency Extractor (PDE) is a standalone Windows tool for extracting PHP source files and their dependencies from large projects. It automatically discovers class dependencies through framework naming conventions and regex parsing, then copies everything to an isolated folder for analysis.</p>
+
+<div class="callout callout-info">
+    <div class="callout-title">Use Case</div>
+    You have a 5000+ file PHP project and need to extract a small subset of related files (e.g., a controller and all its dependencies) to share with an AI assistant or for code review.
+</div>
+
+<p><strong>Key features:</strong></p>
+<ul>
+    <li>Zero dependencies &mdash; single <code>.exe</code>, no runtime needed</li>
+    <li>Web-based UI that opens automatically in your browser</li>
+    <li>Supports ZF1, CakePHP, and Laravel naming conventions</li>
+    <li>Automatic class dependency discovery via regex parsing</li>
+    <li>Optional <code>require</code>/<code>include</code> statement parsing</li>
+    <li>Preserves directory structure in output</li>
+</ul>
+
+<hr>
+
+<!-- Quick Start -->
+<h2 id="quick-start">Quick Start</h2>
+<ol class="steps">
+    <li>Double-click <code>php-dep-extractor.exe</code></li>
+    <li>Browser opens automatically at <code>http://127.0.0.1:&lt;port&gt;</code></li>
+    <li>Click <strong>Browse</strong> next to Project to select your PHP project directory</li>
+    <li>Select a <strong>Framework</strong> (ZF1 / CakePHP / Laravel)</li>
+    <li>Click <strong>Scan</strong> to index the project</li>
+    <li>Check files in the tree you want to extract</li>
+    <li>Click <strong>Analyze</strong> to discover dependencies</li>
+    <li>Click <strong>Copy Files</strong> to export</li>
+</ol>
+
+<hr>
+
+<!-- Interface -->
+<h2 id="interface">Interface</h2>
+
+<h3 id="toolbar">Toolbar</h3>
+<table>
+    <tr><th>Control</th><th>Description</th></tr>
+    <tr><td><strong>Project</strong></td><td>Path to your PHP project root. Click Browse to select via Windows folder dialog.</td></tr>
+    <tr><td><strong>Output</strong></td><td>Where to copy extracted files. If left empty, auto-generates a sibling folder: <code>{project}_output_{timestamp}</code>. Double-click the field to reset to auto mode.</td></tr>
+    <tr><td><strong>Framework</strong></td><td>Select your framework for correct class name resolution: ZF1, CakePHP, or Laravel.</td></tr>
+    <tr><td><strong>Parse require/include</strong></td><td>Enable optional parsing of <code>require</code>/<code>include</code> statements. Results appear in a separate section for manual selection.</td></tr>
+    <tr><td><strong>Scan</strong></td><td>Traverse the project directory, build the file tree and class name index.</td></tr>
+    <tr><td><strong>Analyze</strong></td><td>Parse selected files for class references and resolve dependencies.</td></tr>
+    <tr><td><strong>Copy Files</strong></td><td>Copy all selected files + dependencies to the output directory.</td></tr>
+    <tr><td><strong>Settings</strong></td><td>Open settings panel (theme, font size, framework prefix mappings).</td></tr>
+</table>
+
+<h3 id="file-tree">Left Panel &mdash; File Tree</h3>
+<ul>
+    <li>Displays all <code>.php</code> files found in the project</li>
+    <li><strong>Collapsed by default</strong> &mdash; click a folder to expand one level at a time</li>
+    <li>Click a checkbox (or click the file row) to select/deselect files</li>
+    <li>Use the <strong>search box</strong> to filter files by path &mdash; matching directories auto-expand</li>
+</ul>
+
+<h3 id="dependencies">Right Panel &mdash; Dependencies</h3>
+<p>After clicking Analyze, three sections appear:</p>
+<table>
+    <tr><th>Section</th><th>Color</th><th>Description</th></tr>
+    <tr><td><span class="badge badge-blue">Selected</span></td><td>Blue</td><td>Files you manually checked in the tree</td></tr>
+    <tr><td><span class="badge badge-orange">Dependencies</span></td><td>Orange</td><td>Auto-discovered class dependencies, showing which class, reference type (<code>new</code>, <code>extends</code>, <code>static</code>, etc.) and which selected file references it</td></tr>
+    <tr><td><span class="badge badge-gray">Include/Require</span></td><td>Gray</td><td>Only shown when &ldquo;Parse require/include&rdquo; is enabled. Each entry has a checkbox &mdash; check the ones you want to include in the copy</td></tr>
+</table>
+
+<h3 id="status-bar">Status Bar</h3>
+<ul>
+    <li><strong>Left</strong>: current operation status message</li>
+    <li><strong>Right</strong>: file counts (Selected / Dependencies / Total) and version number</li>
+</ul>
+
+<hr>
+
+<!-- Settings -->
+<h2 id="settings">Settings</h2>
+<p>Click the <strong>Settings</strong> button to open the settings panel. It has three tabs:</p>
+
+<h3 id="settings-general">General</h3>
+<ul>
+    <li><strong>Theme</strong>: Choose between Dark, Light, or System (follows your Windows appearance setting). Persists across sessions.</li>
+    <li><strong>Font Size</strong>: Adjust from 11px to 18px using the slider or +/&minus; buttons. Default is 13px. Persists across sessions.</li>
+</ul>
+
+<h3 id="settings-framework">Framework</h3>
+<p>Configure <strong>ZF1 prefix mappings</strong> &mdash; the rules that map class name prefixes to directories under <code>application/</code>:</p>
+<table>
+    <tr><th>Prefix</th><th>Directory</th><th>Example</th></tr>
+    <tr><td><code>Parent_</code></td><td><code>parents/</code></td><td><code>Parent_DbTable_Car_X</code> &rarr; <code>parents/DbTable/Car/X.php</code></td></tr>
+    <tr><td><code>DbTable_</code></td><td><code>dbs/</code></td><td><code>DbTable_Car_CarrierCust</code> &rarr; <code>dbs/Car/CarrierCust.php</code></td></tr>
+    <tr><td><code>Service_</code></td><td><code>services/</code></td><td><code>Service_Sys_Breadcrumbs</code> &rarr; <code>services/Sys/Breadcrumbs.php</code></td></tr>
+    <tr><td><code>Model_</code></td><td><code>models/</code></td><td><code>Model_Car_CarrierCust</code> &rarr; <code>models/Car/CarrierCust.php</code></td></tr>
+    <tr><td><code>Form_</code></td><td><code>forms/</code></td><td><code>Form_Login</code> &rarr; <code>forms/Login.php</code></td></tr>
+</table>
+<p>You can add, remove, or modify rows. Click <strong>Save Mappings</strong> to apply.</p>
+
+<h3 id="settings-about">About</h3>
+<p>Version info, supported frameworks, and tool description.</p>
+
+<hr>
+
+<!-- Framework Support -->
+<h2 id="framework-support">Framework Support</h2>
+
+<h3 id="fw-zf1">ZF1 (Zend Framework 1)</h3>
+<p><strong>Class resolution</strong>: Underscore-separated class names map to directory paths.</p>
+<pre><code>Model_Car_CarrierCust  &rarr;  application/models/Car/CarrierCust.php
+DbTable_Ord_Order      &rarr;  application/dbs/Ord/Order.php
+Service_Api_StarTrack  &rarr;  application/services/Api/StarTrack.php</code></pre>
+
+<p><strong>Detection patterns</strong>:</p>
+<ul>
+    <li><code>new ClassName()</code> &mdash; instantiation</li>
+    <li><code>extends ClassName</code> &mdash; inheritance</li>
+    <li><code>implements InterfaceName</code> &mdash; interface implementation</li>
+    <li><code>ClassName::method()</code> &mdash; static calls</li>
+    <li><code>function foo(ClassName $bar)</code> &mdash; type hints</li>
+</ul>
+
+<div class="callout callout-tip">
+    <div class="callout-title">Auto-filtered</div>
+    Classes starting with <code>Zend_</code>, <code>ZendX_</code>, and PHP built-ins (<code>stdClass</code>, <code>Exception</code>, <code>DateTime</code>, etc.) are automatically excluded from dependency results.
+</div>
+
+<h3 id="fw-cakephp">CakePHP</h3>
+<p><strong>Class resolution</strong>: Based on CakePHP 2.x directory conventions.</p>
+<table>
+    <tr><th>Type</th><th>Directory</th></tr>
+    <tr><td>Model</td><td><code>Model/</code></td></tr>
+    <tr><td>Controller</td><td><code>Controller/</code></td></tr>
+    <tr><td>Component</td><td><code>Controller/Component/</code></td></tr>
+    <tr><td>Behavior</td><td><code>Model/Behavior/</code></td></tr>
+    <tr><td>Helper</td><td><code>View/Helper/</code></td></tr>
+</table>
+<p><strong>Detection</strong>: <code>App::uses('ClassName', 'Type')</code> and <code>App::import('Type', 'ClassName')</code></p>
+
+<h3 id="fw-laravel">Laravel</h3>
+<p><strong>Class resolution</strong>: PSR-4 namespace to path mapping.</p>
+<pre><code>App\Models\User                          &rarr;  app/Models/User.php
+App\Http\Controllers\OrderController     &rarr;  app/Http/Controllers/OrderController.php
+App\Services\ShippingService             &rarr;  app/Services/ShippingService.php</code></pre>
+<p><strong>Detection</strong>: <code>use App\Models\User</code> statements and namespace-qualified class references.</p>
+
+<hr>
+
+<!-- Require/Include -->
+<h2 id="require-include">Require/Include Parsing</h2>
+<p>When enabled via the toolbar checkbox, PDE scans selected files for:</p>
+<ul>
+    <li><code>require 'path'</code></li>
+    <li><code>require_once 'path'</code></li>
+    <li><code>include 'path'</code></li>
+    <li><code>include_once 'path'</code></li>
+</ul>
+
+<p><strong>Supported path patterns:</strong></p>
+<table>
+    <tr><th>Pattern</th><th>Example</th></tr>
+    <tr><td>Direct string</td><td><code>require_once 'lib/helper.php'</code></td></tr>
+    <tr><td>APPLICATION_PATH</td><td><code>require_once APPLICATION_PATH . '/configs/constants.php'</code></td></tr>
+    <tr><td>dirname(__FILE__)</td><td><code>include dirname(__FILE__) . '/../bootstrap.php'</code></td></tr>
+    <tr><td>__DIR__</td><td><code>require __DIR__ . '/functions.php'</code></td></tr>
+</table>
+
+<div class="callout callout-info">
+    <div class="callout-title">Manual Selection</div>
+    Include/Require results are <strong>not</strong> automatically added to the copy list. They appear in a separate gray section with checkboxes &mdash; check the ones you want before clicking Copy Files.
+</div>
+
+<hr>
+
+<!-- Output Structure -->
+<h2 id="output-structure">Output Structure</h2>
+<p>Copied files preserve their original directory structure relative to the project root:</p>
+
+<div class="file-tree">
+<span class="dir">Input project:</span> C:\projects\myapp\<br>
+<span class="dir">Selected:</span>      <span class="highlight">application/controllers/V3/CustomersController.php</span><br>
+<span class="dir">Dependencies:</span>  <span class="file">application/services/Sys/Breadcrumbs.php</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">application/dbs/Car/CarrierCust.php</span><br>
+<br>
+<span class="dir">Output:</span> C:\projects\myapp_output_20260223_153045\<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9492;&#9472;&#9472; <span class="dir">application/</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9500;&#9472;&#9472; <span class="dir">controllers/V3/</span><span class="highlight">CustomersController.php</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9500;&#9472;&#9472; <span class="dir">services/Sys/</span><span class="file">Breadcrumbs.php</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9492;&#9472;&#9472; <span class="dir">dbs/Car/</span><span class="file">CarrierCust.php</span>
+</div>
+
+<hr>
+
+<!-- Fallback -->
+<h2 id="fallback">Fallback Class Detection</h2>
+<p>For files that don't match any framework naming convention (e.g., standalone utility classes, controllers), PDE reads the first 100 lines of the file looking for:</p>
+<pre><code>class ClassName
+abstract class ClassName
+final class ClassName
+interface InterfaceName
+trait TraitName</code></pre>
+<p>This ensures non-standard files are still indexed and discoverable as dependencies.</p>
+
+<hr>
+
+<!-- Excluded Dirs -->
+<h2 id="excluded-dirs">Excluded Directories</h2>
+<table>
+    <tr><th>Directory</th><th>Reason</th></tr>
+    <tr><td><code>vendor/</code></td><td>Composer dependencies</td></tr>
+    <tr><td><code>node_modules/</code></td><td>npm packages</td></tr>
+    <tr><td><code>.git/</code>, <code>.svn/</code></td><td>Version control</td></tr>
+    <tr><td><code>.idea/</code></td><td>IDE configuration files</td></tr>
+</table>
+
+<hr>
+
+<!-- Technical -->
+<h2 id="technical">Technical Notes</h2>
+<table>
+    <tr><th>Item</th><th>Detail</th></tr>
+    <tr><td>Binding</td><td>Server listens on <code>127.0.0.1</code> only (not exposed to network)</td></tr>
+    <tr><td>Port</td><td>Auto-selected free port (shown in console window)</td></tr>
+    <tr><td>Memory</td><td>All file paths and class index stored in memory; ~6K files is trivial</td></tr>
+    <tr><td>Installation</td><td>None &mdash; single <code>.exe</code> file, no runtime dependencies</td></tr>
+    <tr><td>Settings persistence</td><td>Theme and font size saved to browser <code>localStorage</code></td></tr>
+    <tr><td>Built with</td><td>Go (backend) + vanilla HTML/CSS/JS (frontend), embedded via <code>go:embed</code></td></tr>
+</table>
+
+<hr>
+
+<!-- Troubleshooting -->
+<h2 id="troubleshooting">Troubleshooting</h2>
+<table>
+    <tr><th>Issue</th><th>Solution</th></tr>
+    <tr><td>Browser doesn't open</td><td>Check the console window for the URL (e.g. <code>http://127.0.0.1:54321</code>), open it manually</td></tr>
+    <tr><td>Folder dialog doesn't appear</td><td>Make sure PowerShell is available on your system</td></tr>
+    <tr><td>Missing dependencies</td><td>Try enabling &ldquo;Parse require/include&rdquo; for non-autoloaded files</td></tr>
+    <tr><td>Wrong class mapping</td><td>Check Settings &rarr; Framework tab, adjust prefix mappings for your project</td></tr>
+    <tr><td>Files not found after scan</td><td>Verify the project path is correct and <code>.php</code> files exist outside excluded dirs</td></tr>
+    <tr><td>Console shows port error</td><td>Close other PDE instances, or the OS will auto-select a different port</td></tr>
+</table>
+
+</main>
+</div>
+
+<!-- Sidebar scroll highlight -->
+<script>
+(function() {
+    const links = document.querySelectorAll('.sidebar a');
+    const sections = [];
+    links.forEach(a => {
+        const id = a.getAttribute('href')?.replace('#','');
+        if (id) {
+            const el = document.getElementById(id);
+            if (el) sections.push({ el, a });
+        }
+    });
+
+    function onScroll() {
+        const scrollY = window.scrollY + 80;
+        let current = sections[0];
+        for (const s of sections) {
+            if (s.el.offsetTop <= scrollY) current = s;
+        }
+        links.forEach(a => a.classList.remove('active'));
+        if (current) current.a.classList.add('active');
+    }
+
+    window.addEventListener('scroll', onScroll);
+    onScroll();
+})();
+</script>
+</body>
+</html>
